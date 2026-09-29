@@ -1,116 +1,57 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import {
-  Sparkles,
-  Tv,
-  Gamepad2,
-  Cookie,
-  Smile,
-  Film,
-  Headphones,
-  Shirt,
-  Briefcase,
-  Smartphone,
-  Car,
-  BookOpen,
-  Heart,
-  MessageCircle,
-  Bookmark,
-  RefreshCw,
-} from 'lucide-react';
-import { api } from '../api/client';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useMemo } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import { Sparkles, Heart, Wand2, Clock } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { personalities, dayTimeline2000s, memoryMoments } from '../data/dayInLifeData';
+import { DaySegment } from '../components/DaySegment';
+
+const eraData = {
+  '1990s': { title: '1990s Era', subtitle: 'Relive the golden 90s!' },
+  '2000s': { title: '2000s Era', subtitle: 'Relive the golden 2000s!' },
+  '2010s': { title: '2010s Era', subtitle: 'Relive the 2010s!' },
+  '2020s': { title: '2020s Era', subtitle: 'Relive the 2020s!' },
+};
 
 export const ExplorePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const toast = useToast();
 
-  const currentEra = searchParams.get('era') || '2000s';
-  const currentCategory = searchParams.get('category') || 'All';
-  const currentSort = searchParams.get('sort') || 'trending';
+  const rawEra = searchParams.get('era');
+  const currentEra = eraData[rawEra] ? rawEra : '2000s';
 
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [selectedPersonality, setSelectedPersonality] = useState('cartoon');
+  const [remembered, setRemembered] = useState(false);
 
-  const categories = [
-    { id: 'All', label: 'All', icon: Sparkles },
-    { id: 'Cartoons', label: 'Cartoons', icon: Tv },
-    { id: 'Games', label: 'Games', icon: Gamepad2 },
-    { id: 'Snacks', label: 'Snacks', icon: Cookie },
-    { id: 'Toys', label: 'Toys', icon: Smile },
-    { id: 'Movies', label: 'Movies', icon: Film },
-    { id: 'Music', label: 'Music', icon: Headphones },
-    { id: 'Clothes', label: 'Clothes', icon: Shirt },
-    { id: 'School', label: 'School', icon: Briefcase },
-    { id: 'Gadgets', label: 'Gadgets', icon: Smartphone },
-    { id: 'Cars', label: 'Cars', icon: Car },
-    { id: 'Comics', label: 'Comics', icon: BookOpen },
-  ];
+  const activePersonality = personalities.find((p) => p.id === selectedPersonality) || personalities[0];
+  const topCategory = activePersonality.priority[0];
 
-  const fetchPosts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (currentEra && currentEra.toLowerCase() !== 'all') params.append('era', currentEra);
-      if (currentCategory && currentCategory !== 'All') params.append('category', currentCategory);
-      if (currentSort) params.append('sort', currentSort);
+  const memoryMoment = useMemo(
+    () => memoryMoments[Math.floor(Math.random() * memoryMoments.length)],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedPersonality]
+  );
 
-      const res = await api.get(`/posts?${params.toString()}`);
-      if (res.success) {
-        setPosts(res.posts || []);
-      }
-    } catch (err) {
-      console.error('Failed to load explore posts:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentEra, currentCategory, currentSort]);
-
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
-
-  const handleCategoryChange = (catId) => {
+  const handleEraChange = (era) => {
     const newParams = new URLSearchParams(searchParams);
-    newParams.set('category', catId);
+    newParams.set('era', era);
     setSearchParams(newParams);
   };
 
-  const handleSortChange = (sortType) => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('sort', sortType);
-    setSearchParams(newParams);
-  };
-
-  const handleLike = async (post, e) => {
-    e.stopPropagation();
-    if (!user) {
-      toast.info('Please log in to like memories');
-      navigate('/login');
-      return;
-    }
-    try {
-      const res = await api.post(`/posts/${post._id}/like`);
-      if (res.success) {
-        setPosts((prev) =>
-          prev.map((p) =>
-            p._id === post._id
-              ? {
-                  ...p,
-                  likes: res.isLiked
-                    ? [...(p.likes || []), user._id]
-                    : (p.likes || []).filter((id) => (id._id || id) !== user._id),
-                }
-              : p
-          )
-        );
-      }
-    } catch (err) {
-      toast.error('Failed to like post');
-    }
+  const handleRemember = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    confetti({
+      particleCount: 60,
+      spread: 65,
+      origin: {
+        x: (rect.left + rect.width / 2) / window.innerWidth,
+        y: (rect.top + rect.height / 2) / window.innerHeight,
+      },
+      colors: ['#FFB020', '#FF5E1E', '#00F0FF', '#FF007F'],
+    });
+    setRemembered(true);
+    toast.success("You're not alone — thousands remember this too! ✨");
   };
 
   return (
@@ -126,43 +67,60 @@ export const ExplorePage = () => {
         {/* Ambient Dark Overlay with Centered Titles */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0B0D14]/80 via-[#0B0D14]/50 to-[#0B0D14]/80 flex flex-col items-center justify-center text-center p-4">
           <h1 className="font-cartoon text-3xl sm:text-5xl text-[#FFFDF7] drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
-            {currentEra === '90s' ? '1990s' : currentEra} Era
+            {eraData[currentEra].title}
           </h1>
           <p className="text-retro-amber font-cartoon text-sm sm:text-xl mt-1 tracking-wide drop-shadow-md">
-            Relive the golden {currentEra}!
+            {eraData[currentEra].subtitle}
           </p>
         </div>
       </div>
 
-      {/* Categories Grid (2 rows of rounded squares matching reference) */}
-      <div className="mb-8">
-        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2.5 sm:gap-3">
-          {categories.map((cat) => {
-            const Icon = cat.icon;
-            const isSelected = currentCategory.toLowerCase() === cat.id.toLowerCase();
+      {/* ============ SECTION 1 — CHILDHOOD INTRO ============ */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center max-w-2xl mx-auto mb-10"
+      >
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-retro-amber text-xs font-mono font-bold uppercase tracking-wider mb-3">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Childhood Replay</span>
+        </div>
+        <h2 className="font-display font-black text-2xl sm:text-4xl text-white">
+          YOUR {currentEra} CHILDHOOD
+        </h2>
+        <p className="text-slate-400 text-sm sm:text-base mt-3">
+          Before smartphones. Before endless scrolling. Just school, cartoons, games and memories.
+        </p>
+      </motion.div>
+
+      {/* Personality Selector */}
+      <div className="mb-14">
+        <h3 className="text-center font-display font-bold text-lg sm:text-2xl text-slate-100 mb-6">
+          What kind of {currentEra} kid were you?
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          {personalities.map((p) => {
+            const isSelected = selectedPersonality === p.id;
             return (
               <button
-                key={cat.id}
-                onClick={() => handleCategoryChange(cat.id)}
-                className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-200 group ${
+                key={p.id}
+                onClick={() => setSelectedPersonality(p.id)}
+                className={`flex flex-col items-center text-center gap-2 p-4 sm:p-5 rounded-2xl border transition-all duration-200 ${
                   isSelected
-                    ? 'bg-[#1C2333] border-retro-amber shadow-glow-amber scale-103'
-                    : 'bg-[#10141F] border-slate-800 hover:border-slate-700 hover:bg-[#151B2A]'
+                    ? 'bg-[#1C2333] border-retro-amber shadow-glow-amber scale-[1.03]'
+                    : 'bg-[#0F131D] border-slate-800 hover:border-slate-700 hover:bg-[#151B2A]'
                 }`}
               >
-                <div
-                  className={`p-2 rounded-xl mb-1.5 transition-colors ${
-                    isSelected ? 'text-retro-amber' : 'text-slate-400 group-hover:text-slate-200'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                </div>
+                <span className="text-3xl sm:text-4xl">{p.emoji}</span>
                 <span
-                  className={`text-[11px] font-semibold tracking-tight ${
-                    isSelected ? 'text-retro-amber font-bold' : 'text-slate-300'
+                  className={`text-[11px] sm:text-xs font-bold tracking-tight ${
+                    isSelected ? 'text-retro-amber' : 'text-slate-300'
                   }`}
                 >
-                  {cat.label}
+                  {p.label}
+                </span>
+                <span className="text-[10px] sm:text-[11px] text-slate-500 leading-snug">
+                  {p.tagline}
                 </span>
               </button>
             );
@@ -170,103 +128,110 @@ export const ExplorePage = () => {
         </div>
       </div>
 
-      {/* Tabs: Trending, Latest, Most Liked */}
-      <div className="flex items-center gap-6 border-b border-slate-800/80 mb-6 pb-2">
-        <button
-          onClick={() => handleSortChange('trending')}
-          className={`text-sm font-bold transition-all relative pb-2 ${
-            currentSort === 'trending'
-              ? 'text-emerald-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-emerald-400'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Trending
-        </button>
+      {currentEra === '2000s' ? (
+        <>
+          {/* ============ SECTION 2 — A DAY IN THE LIFE ============ */}
+          <div className="text-center max-w-xl mx-auto mb-10">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-retro-cyan/30 text-retro-cyan text-xs font-mono font-bold uppercase tracking-wider mb-3">
+              <Clock className="w-3.5 h-3.5" />
+              <span>A Day In The Life</span>
+            </div>
+            <h2 className="font-display font-black text-2xl sm:text-4xl text-white">
+              A DAY IN THE LIFE OF A 2000s KID
+            </h2>
+            <p className="text-slate-400 text-sm sm:text-base mt-2">Let's rewind a normal day...</p>
+          </div>
 
-        <button
-          onClick={() => handleSortChange('latest')}
-          className={`text-sm font-bold transition-all relative pb-2 ${
-            currentSort === 'latest'
-              ? 'text-emerald-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-emerald-400'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Latest
-        </button>
+          <div className="relative pl-0 sm:pl-10 space-y-8 sm:space-y-10 mb-16">
+            <div className="hidden sm:block absolute left-3 top-2 bottom-2 w-px bg-gradient-to-b from-retro-amber/60 via-slate-700 to-transparent" />
+            {dayTimeline2000s.map((segment, idx) => (
+              <DaySegment
+                key={segment.id}
+                segment={segment}
+                index={idx}
+                isTopPick={segment.category === topCategory}
+              />
+            ))}
+          </div>
 
-        <button
-          onClick={() => handleSortChange('loved')}
-          className={`text-sm font-bold transition-all relative pb-2 ${
-            currentSort === 'loved'
-              ? 'text-emerald-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-emerald-400'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Most Liked
-        </button>
-      </div>
-
-      {/* Grid of Nostalgia Cards matching reference */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <RefreshCw className="w-8 h-8 text-retro-amber animate-spin mb-3" />
-          <p className="text-xs font-mono text-slate-400">Loading nostalgic memories...</p>
-        </div>
-      ) : posts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {posts.map((post) => {
-            const isLiked = user && post.likes?.some((id) => (id._id || id) === user._id);
-            return (
-              <div
-                key={post._id}
-                onClick={() => navigate(`/post/${post._id}`)}
-                className="group rounded-2xl overflow-hidden cursor-pointer flex flex-col bg-[#FDF8EE] text-slate-900 border border-[#E8DCBF] shadow-lg transition-transform hover:-translate-y-1"
-              >
-                {/* Image */}
-                <div className="relative aspect-[4/3] bg-black overflow-hidden">
-                  <img
-                    src={post.image || '/assets/hero_room.jpg'}
-                    alt={post.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-
-                {/* Body */}
-                <div className="p-3.5 flex flex-col justify-between flex-1">
-                  <h3 className="font-cartoon font-bold text-sm sm:text-base text-slate-900 line-clamp-1">
-                    {post.title}
-                  </h3>
-
-                  {/* Likes and Comments Counters */}
-                  <div className="flex items-center gap-3 mt-3 text-xs text-slate-600 font-semibold">
-                    <button
-                      onClick={(e) => handleLike(post, e)}
-                      className="flex items-center gap-1 hover:text-rose-600 transition-colors"
-                    >
-                      <Heart
-                        className={`w-3.5 h-3.5 ${
-                          isLiked ? 'fill-rose-500 text-rose-500' : 'text-slate-500'
-                        }`}
-                      />
-                      <span>{post.likes?.length || 0}</span>
-                    </button>
-
-                    <span className="flex items-center gap-1">
-                      <MessageCircle className="w-3.5 h-3.5 text-slate-500" />
-                      <span>{post.comments?.length || 0}</span>
-                    </span>
-                  </div>
-                </div>
+          {/* ============ SECTION 3 — MEMORY MOMENT ============ */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative rounded-3xl bg-gradient-to-br from-[#181120] via-[#101422] to-[#1B190E] border border-retro-amber/40 p-8 sm:p-12 text-center overflow-hidden mb-16"
+          >
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-retro-amber/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative z-10 max-w-xl mx-auto">
+              <h2 className="font-display font-black text-2xl sm:text-3xl text-white">
+                DO YOU REMEMBER THIS?
+              </h2>
+              <p className="text-slate-200 text-sm sm:text-lg mt-4 italic leading-relaxed">
+                "{memoryMoment}"
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3 mt-7">
+                <button
+                  onClick={handleRemember}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all ${
+                    remembered
+                      ? 'bg-rose-500/20 border border-rose-500/50 text-rose-300'
+                      : 'bg-[#07090E] border border-slate-700 text-slate-200 hover:border-rose-400/60 hover:text-rose-300'
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ${remembered ? 'fill-rose-400 text-rose-400' : ''}`} />
+                  {remembered ? 'You Remember This!' : 'I Remember This'}
+                </button>
+                <Link
+                  to="/create"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-retro-amber via-retro-orange to-retro-pink text-slate-950 font-bold text-xs shadow-glow-amber hover:opacity-95 transition-all"
+                >
+                  <Wand2 className="w-4 h-4" />
+                  Share Your Memory
+                </Link>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          </motion.div>
+        </>
       ) : (
-        <div className="text-center py-20 bg-[#121622]/40 rounded-3xl border border-dashed border-slate-800">
-          <p className="text-slate-300 font-semibold text-sm">No memories found in this selection.</p>
+        <div className="text-center py-16 rounded-3xl bg-[#0F131D]/40 border border-dashed border-slate-800 max-w-xl mx-auto p-8 mb-16">
+          <Sparkles className="w-8 h-8 text-retro-amber mx-auto mb-3" />
+          <h3 className="font-display font-bold text-lg text-slate-200">
+            The {currentEra} journey is on its way
+          </h3>
+          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+            We're still gathering nostalgic memories for this era. The 2000s experience is the most
+            complete right now — hop back to relive it!
+          </p>
+          <button
+            onClick={() => handleEraChange('2000s')}
+            className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-xl bg-retro-amber text-slate-950 font-bold text-xs shadow-glow-amber hover:bg-amber-400 transition-all"
+          >
+            Explore the 2000s
+          </button>
         </div>
       )}
+
+      {/* ============ SECTION 5 — ERA SWITCH ============ */}
+      <div className="text-center mb-4">
+        <h3 className="font-display font-bold text-lg sm:text-xl text-slate-100 mb-4">
+          Want to travel to another era?
+        </h3>
+        <div className="flex items-center justify-center gap-2">
+          {Object.keys(eraData).map((era) => (
+            <button
+              key={era}
+              onClick={() => handleEraChange(era)}
+              className={`px-5 py-2.5 rounded-xl text-sm font-mono font-bold transition-all ${
+                currentEra === era
+                  ? 'bg-retro-amber text-slate-950 shadow-glow-amber'
+                  : 'bg-[#0F131D] text-slate-300 border border-slate-800 hover:border-slate-700 hover:text-white'
+              }`}
+            >
+              {era}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

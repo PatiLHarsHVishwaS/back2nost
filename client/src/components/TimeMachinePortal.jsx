@@ -44,8 +44,7 @@ export const TimeMachinePortal = ({ selectedEra, onEraSelect }) => {
   ];
 
   const handleEnter = () => {
-    const eraSlug = selectedEra === '1990s' ? '90s' : selectedEra.toLowerCase();
-    navigate(`/explore?era=${eraSlug}`);
+    navigate(`/explore?era=${selectedEra}`);
   };
 
   return (
@@ -53,7 +52,7 @@ export const TimeMachinePortal = ({ selectedEra, onEraSelect }) => {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative w-full max-w-[620px] mx-auto select-none flex flex-col items-center"
+      className="relative w-full max-w-[380px] sm:max-w-[460px] md:max-w-[620px] mx-auto select-none flex flex-col items-center"
       style={{ perspective: 1000 }}
     >
       <motion.div

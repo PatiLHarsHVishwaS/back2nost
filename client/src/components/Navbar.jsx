@@ -88,6 +88,17 @@ export const Navbar = () => {
             >
               Communities
             </Link>
+
+            <Link
+              to="/vault"
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                isActive('/vault')
+                  ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              Vault
+            </Link>
           </nav>
         </div>
 

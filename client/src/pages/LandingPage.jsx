@@ -8,7 +8,7 @@ export const LandingPage = () => {
   const [selectedEra, setSelectedEra] = useState('2000s');
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden">
+    <div className="relative min-h-[calc(100vh-4rem-5rem)] md:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden">
       {/* Background: Cozy Nostalgic Bedroom with Vignette Overlay */}
       <div className="absolute inset-0 z-0">
         <img

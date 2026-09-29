@@ -14,6 +14,7 @@ import { PostDetailPage } from './pages/PostDetailPage';
 import { CreatePostPage } from './pages/CreatePostPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { TimeCapsulePage } from './pages/TimeCapsulePage';
+import { VaultPage } from './pages/VaultPage';
 import { SearchPage } from './pages/SearchPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -42,6 +43,7 @@ export const App = () => {
           <Route path="/create" element={<CreatePostPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/time-capsule" element={<TimeCapsulePage />} />
+          <Route path="/vault" element={<VaultPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
