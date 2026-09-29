@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #080A10;
+    color: #F3F4F6;
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+}
+
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #080A10;
+}
+::-webkit-scrollbar-thumb {
+  background: #1C2333;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FFB020;
+}
+
+/* 3D Comic Text Shadows from reference */
+.cartoon-title {
+  font-family: 'Fredoka', cursive, sans-serif;
+  color: #FFFDF7;
+  text-shadow: 
+    0 2px 0 #5B3111,
+    0 5px 0 #3C1E07,
+    0 7px 12px rgba(0, 0, 0, 0.75);
+}
+
+.cartoon-title-gold {
+  font-family: 'Fredoka', cursive, sans-serif;
+  background: linear-gradient(180deg, #FFE873 0%, #FFB020 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 0 #6C3500) drop-shadow(0 7px 12px rgba(0, 0, 0, 0.8));
+}
+
+/* Glassmorphism utility classes matching reference */
+.glass-panel {
+  background: rgba(18, 22, 34, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-glow {
+  background: rgba(18, 22, 34, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 176, 32, 0.3);
+  box-shadow: 0 10px 35px -5px rgba(0, 0, 0, 0.7), inset 0 0 16px rgba(255, 176, 32, 0.06);
+}
+
+.retro-portal-card {
+  background: radial-gradient(circle at center, rgba(30, 20, 50, 0.9) 0%, rgba(10, 12, 18, 0.95) 100%);
+  border: 3px solid #8C5528;
+  box-shadow: 0 0 30px rgba(255, 176, 32, 0.35), inset 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+/* CRT Scanlines subtle overlay */
+.crt-overlay {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 255, 0, 0.03)
+  );
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+}
+
+/* Text glow */
+.text-retro-glow {
+  text-shadow: 0 0 20px rgba(255, 176, 32, 0.6), 0 0 40px rgba(255, 94, 30, 0.3);
+}
+
+.text-cyan-glow {
+  text-shadow: 0 0 20px rgba(0, 240, 255, 0.6), 0 0 40px rgba(0, 240, 255, 0.3);
+}
